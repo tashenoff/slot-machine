@@ -4,6 +4,10 @@
     "initialJackpot": 1000000,
     "jackpotContribution": 0.1,
     "consolationPrize": 0.2,
+    "freeSpins": {
+      "count": 10,
+      "multiplier": 2
+    },
     "bets": {
       "min": 50000,
       "max": 200000,
@@ -36,6 +40,12 @@
       "id": "grape",
       "symbol": "🍇",
       "value": 6
+    },
+    {
+      "id": "freespin",
+      "symbol": "⭐",
+      "value": 0,
+      "isSpecial": true
     }
   ],
   "animation": {

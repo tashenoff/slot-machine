@@ -6,6 +6,7 @@ import slotConfig from '../config/slot-machine.json';
 import Balance from './Balance';
 import Bet from './Bet';
 import Jackpot from './Jackpot';
+import FreeSpins from './FreeSpins';
 
 interface Symbol {
   id: string;
@@ -17,8 +18,9 @@ interface WinResult {
   amount: number;
   name: string;
   isConsolation?: boolean;
-  lineType?: 'horizontal' | 'diagonal-lr' | 'diagonal-rl';
+  lineType?: 'horizontal' | 'diagonal-lr' | 'diagonal-rl' | 'vertical';
   position?: number;
+  isFreeSpins?: boolean;
 }
 
 export default function SlotMachine() {
@@ -26,7 +28,17 @@ export default function SlotMachine() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [lastWin, setLastWin] = useState<WinResult | null>(null);
   const nextSymbolsRef = useRef<Symbol[][]>([]);
-  const { bet, balance, updateBalance, increaseJackpot } = useGameStore();
+  const { 
+    bet, 
+    balance, 
+    updateBalance, 
+    increaseJackpot, 
+    freeSpinsCount,
+    isFreeSpin,
+    multiplier,
+    setFreeSpins,
+    decrementFreeSpins
+  } = useGameStore();
 
   useEffect(() => {
     // Генерируем начальные символы при загрузке
@@ -122,15 +134,70 @@ export default function SlotMachine() {
     return newSymbols;
   };
 
+  const checkFreeSpins = (symbols: Symbol[][]): WinResult | null => {
+    // Проверяем горизонтальные линии
+    for (let row = 0; row < 3; row++) {
+      const lineSymbols = symbols.map(reel => reel[row]);
+      if (lineSymbols.every(symbol => symbol.id === 'freespin')) {
+        return {
+          amount: 0,
+          name: 'Бесплатные вращения!',
+          lineType: 'horizontal',
+          position: row,
+          isFreeSpins: true
+        };
+      }
+    }
+
+    // Проверяем вертикальные линии
+    for (let col = 0; col < 3; col++) {
+      const lineSymbols = symbols[col];
+      if (lineSymbols.every(symbol => symbol.id === 'freespin')) {
+        return {
+          amount: 0,
+          name: 'Бесплатные вращения!',
+          lineType: 'vertical',
+          position: col,
+          isFreeSpins: true
+        };
+      }
+    }
+
+    // Проверяем диагональ слева направо
+    const diagonalLR = [symbols[0][0], symbols[1][1], symbols[2][2]];
+    if (diagonalLR.every(symbol => symbol.id === 'freespin')) {
+      return {
+        amount: 0,
+        name: 'Бесплатные вращения!',
+        lineType: 'diagonal-lr',
+        isFreeSpins: true
+      };
+    }
+
+    // Проверяем диагональ справа налево
+    const diagonalRL = [symbols[0][2], symbols[1][1], symbols[2][0]];
+    if (diagonalRL.every(symbol => symbol.id === 'freespin')) {
+      return {
+        amount: 0,
+        name: 'Бесплатные вращения!',
+        lineType: 'diagonal-rl',
+        isFreeSpins: true
+      };
+    }
+
+    return null;
+  };
+
   const spin = async () => {
     if (isSpinning) return;
-    if (balance < bet) return;
+    if (!isFreeSpin && balance < bet) return;
     
     setLastWin(null);
-    updateBalance(-bet);
-    
-    const jackpotContribution = Math.floor(bet * slotConfig.gameSettings.jackpotContribution);
-    increaseJackpot(jackpotContribution);
+    if (!isFreeSpin) {
+      updateBalance(-bet);
+      const jackpotContribution = Math.floor(bet * slotConfig.gameSettings.jackpotContribution);
+      increaseJackpot(jackpotContribution);
+    }
     
     setIsSpinning(true);
 
@@ -148,11 +215,24 @@ export default function SlotMachine() {
     
     setReels(finalSymbols);
     
+    // Проверяем фри спины
+    const freeSpinsResult = checkFreeSpins(finalSymbols);
+    if (freeSpinsResult) {
+      setLastWin(freeSpinsResult);
+      setFreeSpins(slotConfig.gameSettings.freeSpins.count);
+      setIsSpinning(false);
+      return;
+    }
+
+    // Проверяем обычный выигрыш
     const winResult = checkWin(finalSymbols.map(reel => reel[0]));
-    
     if (winResult) {
-      updateBalance(winResult.amount);
-      setLastWin(winResult);
+      const winAmount = isFreeSpin ? winResult.amount * multiplier : winResult.amount;
+      updateBalance(winAmount);
+      setLastWin({
+        ...winResult,
+        amount: winAmount
+      });
       
       if (winResult.name.includes('Джекпот')) {
         useGameStore.getState().resetJackpot();
@@ -160,9 +240,17 @@ export default function SlotMachine() {
     } else {
       const consolationWin = checkCenterMatch(finalSymbols);
       if (consolationWin) {
-        updateBalance(consolationWin.amount);
-        setLastWin(consolationWin);
+        const consolationAmount = isFreeSpin ? consolationWin.amount * multiplier : consolationWin.amount;
+        updateBalance(consolationAmount);
+        setLastWin({
+          ...consolationWin,
+          amount: consolationAmount
+        });
       }
+    }
+
+    if (isFreeSpin) {
+      decrementFreeSpins();
     }
     
     setIsSpinning(false);
@@ -230,6 +318,12 @@ export default function SlotMachine() {
           <Jackpot />
           <Bet />
         </div>
+
+        {(freeSpinsCount > 0 || isFreeSpin) && (
+          <div className="w-full max-w-4xl mx-auto mb-8">
+            <FreeSpins />
+          </div>
+        )}
 
         <div className="bg-yellow-900 p-8 rounded-xl shadow-2xl">
           <div className="flex gap-4 mb-8 p-4 bg-yellow-800 rounded-lg">
