@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import slotConfig from '../config/slot-machine.json';
 
 interface Symbol {
@@ -12,16 +12,16 @@ interface Symbol {
 export default function SlotMachine() {
   const [reels, setReels] = useState<Symbol[][]>([]);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [spinComplete, setSpinComplete] = useState(false);
-  const [finalSymbols, setFinalSymbols] = useState<Symbol[][]>([]);
+  const nextSymbolsRef = useRef<Symbol[][]>([]);
+  const spinningRef = useRef<boolean>(false);
 
   useEffect(() => {
-    // Инициализация барабанов - каждый барабан содержит 10 символов
+    // Генерируем начальные символы при загрузке
     const initialReels = Array(slotConfig.reels)
       .fill(null)
-      .map(() => getRandomSymbols(10));
+      .map(() => getRandomSymbols(slotConfig.symbols.length));
     setReels(initialReels);
-    setFinalSymbols(initialReels);
+    nextSymbolsRef.current = initialReels;
   }, []);
 
   const getRandomSymbols = (count: number): Symbol[] => {
@@ -33,25 +33,38 @@ export default function SlotMachine() {
       });
   };
 
-  const spin = async () => {
-    if (isSpinning) return;
+  const prepareReelsForSpin = () => {
+    // Генерируем новую комбинацию
+    const newSymbols = reels.map((currentReel, index) => {
+      // Используем текущие символы каждого барабана
+      const newReel = getRandomSymbols(slotConfig.symbols.length);
+      // Возвращаем комбинацию текущих и новых символов
+      return [...currentReel, ...newReel];
+    });
     
+    return newSymbols;
+  };
+
+  const spin = async () => {
+    if (spinningRef.current) return;
+    
+    spinningRef.current = true;
     setIsSpinning(true);
-    setSpinComplete(false);
 
-    // Генерируем новые символы
-    const newReels = Array(slotConfig.reels)
-      .fill(null)
-      .map(() => getRandomSymbols(10));
-    setReels(newReels);
+    // Подготавливаем барабаны с новыми символами
+    const preparedReels = prepareReelsForSpin();
+    setReels(preparedReels);
 
-    // Ждем окончания анимации (2 секунды + задержка для последнего барабана)
+    // Ждем окончания анимации
     await new Promise(resolve => 
       setTimeout(resolve, 2000 + (slotConfig.reels * 200))
     );
     
+    // Обновляем состояние на конечные символы
+    const finalSymbols = preparedReels.map(reel => reel.slice(slotConfig.symbols.length));
+    setReels(finalSymbols);
+    spinningRef.current = false;
     setIsSpinning(false);
-    setSpinComplete(true);
   };
 
   return (
@@ -62,14 +75,13 @@ export default function SlotMachine() {
             transform: translateY(0);
           }
           100% {
-            /* Высота одного символа 96px (h-24), умножаем на количество символов */
-            transform: translateY(-960px);
+            transform: translateY(-${slotConfig.symbols.length * 96}px);
           }
         }
         
         .reel {
           position: relative;
-          height: 288px; /* Ровно 3 символа */
+          height: 288px;
           width: 120px;
           background: white;
           border-radius: 0.5rem;
@@ -82,6 +94,8 @@ export default function SlotMachine() {
           display: flex;
           flex-direction: column;
           align-items: center;
+          transform: translateY(0);
+          will-change: transform;
         }
         
         .spinning {
@@ -100,16 +114,13 @@ export default function SlotMachine() {
                     animationDelay: `${reelIndex * 0.2}s`
                   }}
                 >
-                  {/* Повторяем символы 3 раза для создания эффекта бесконечного вращения */}
-                  {[...Array(3)].map((_, iteration) => (
-                    reel.map((symbol, symbolIndex) => (
-                      <div
-                        key={`${reelIndex}-${iteration}-${symbolIndex}`}
-                        className="w-24 h-24 flex items-center justify-center text-6xl shrink-0"
-                      >
-                        {symbol.symbol}
-                      </div>
-                    ))
+                  {reel.map((symbol, symbolIndex) => (
+                    <div
+                      key={`${reelIndex}-${symbolIndex}`}
+                      className="w-24 h-24 flex items-center justify-center text-6xl shrink-0"
+                    >
+                      {symbol.symbol}
+                    </div>
                   ))}
                 </div>
               </div>
