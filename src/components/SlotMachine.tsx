@@ -153,10 +153,11 @@ export default function SlotMachine() {
   };
 
   const checkFreeSpins = (symbols: Symbol[][]): WinResult | null => {
-    // Проверяем горизонтальные линии
+    // Проверяем горизонтальные линии на 4 совпадения
     for (let row = 0; row < 3; row++) {
       const lineSymbols = symbols.map(reel => reel[row]);
-      if (lineSymbols.every(symbol => symbol.id === 'freespin')) {
+      // Проверяем, что все 4 символа - это freespin
+      if (lineSymbols.length === 4 && lineSymbols.every(symbol => symbol.id === 'freespin')) {
         return {
           amount: 0,
           name: 'Бесплатные вращения!',
@@ -168,10 +169,10 @@ export default function SlotMachine() {
       }
     }
 
-    // Проверяем вертикальные линии
+    // Проверяем вертикальные линии на 4 совпадения
     for (let col = 0; col < 4; col++) {
       const lineSymbols = symbols[col];
-      if (lineSymbols.every(symbol => symbol.id === 'freespin')) {
+      if (lineSymbols.length === 3 && lineSymbols.every(symbol => symbol.id === 'freespin')) {
         return {
           amount: 0,
           name: 'Бесплатные вращения!',
@@ -183,9 +184,9 @@ export default function SlotMachine() {
       }
     }
 
-    // Проверяем диагональ слева направо
+    // Проверяем диагональ слева направо на 4 совпадения
     const diagonalLR = [symbols[0][0], symbols[1][1], symbols[2][2], symbols[3][2]];
-    if (diagonalLR.every(symbol => symbol.id === 'freespin')) {
+    if (diagonalLR.length === 4 && diagonalLR.every(symbol => symbol.id === 'freespin')) {
       return {
         amount: 0,
         name: 'Бесплатные вращения!',
@@ -195,9 +196,9 @@ export default function SlotMachine() {
       };
     }
 
-    // Проверяем диагональ справа налево
+    // Проверяем диагональ справа налево на 4 совпадения
     const diagonalRL = [symbols[0][2], symbols[1][1], symbols[2][0], symbols[3][0]];
-    if (diagonalRL.every(symbol => symbol.id === 'freespin')) {
+    if (diagonalRL.length === 4 && diagonalRL.every(symbol => symbol.id === 'freespin')) {
       return {
         amount: 0,
         name: 'Бесплатные вращения!',
@@ -254,18 +255,42 @@ export default function SlotMachine() {
       return null;
     }
 
-    // Иначе проверяем все строки
-    for (let row = 0; row < 3; row++) {
-      const lineSymbols = symbols.map(reel => reel[row]);
-      const firstSymbol = lineSymbols[0];
-      if (lineSymbols.every(symbol => symbol.id === firstSymbol.id)) {
-        return { 
-          hasMatch: true, 
-          row, 
-          symbol: firstSymbol 
-        };
-      }
+    // Проверяем центральную линию первой
+    const centerRow = 1;
+    const centerLineSymbols = symbols.map(reel => reel[centerRow]);
+    const centerSymbol = centerLineSymbols[0];
+    if (centerLineSymbols.every(symbol => symbol.id === centerSymbol.id)) {
+      return { 
+        hasMatch: true, 
+        row: centerRow, 
+        symbol: centerSymbol 
+      };
     }
+
+    // Затем проверяем верхнюю линию
+    const topRow = 0;
+    const topLineSymbols = symbols.map(reel => reel[topRow]);
+    const topSymbol = topLineSymbols[0];
+    if (topLineSymbols.every(symbol => symbol.id === topSymbol.id)) {
+      return { 
+        hasMatch: true, 
+        row: topRow, 
+        symbol: topSymbol 
+      };
+    }
+
+    // И наконец нижнюю линию
+    const bottomRow = 2;
+    const bottomLineSymbols = symbols.map(reel => reel[bottomRow]);
+    const bottomSymbol = bottomLineSymbols[0];
+    if (bottomLineSymbols.every(symbol => symbol.id === bottomSymbol.id)) {
+      return { 
+        hasMatch: true, 
+        row: bottomRow, 
+        symbol: bottomSymbol 
+      };
+    }
+
     return null;
   };
 
@@ -312,6 +337,17 @@ export default function SlotMachine() {
     let totalWinAmount = 0;
     const wins: string[] = [];
     let winningRow = -1;
+
+    // Проверяем на выигрыш через checkCenterMatch
+    const centerMatchResult = checkCenterMatch(finalSymbols);
+    if (centerMatchResult) {
+      updateBalance(centerMatchResult.amount);
+      setLastWin(centerMatchResult);
+      setHasThreeMatch(false);
+      setMatchedRows([]);
+      setIsSpinning(false);
+      return;
+    }
 
     for (const row of matchedRows) {
       const lineSymbols = finalSymbols.map(reel => reel[row]);
@@ -597,7 +633,7 @@ export default function SlotMachine() {
                         <div
                           key={`${reelIndex}-${symbolIndex}`}
                           className={`w-20 h-24 flex items-center justify-center text-5xl shrink-0 
-                            ${!isSpinning && lastWin && !lastWin.isConsolation && symbolIndex === 0 ? 'win-animation' : ''}
+                            ${!isSpinning && lastWin && !lastWin.isConsolation && symbolIndex === (lastWin.position ?? 1) ? 'win-animation' : ''}
                             ${hasThreeMatch && matchedRows.includes(symbolIndex) ? 'matched-row' : ''}
                             ${!isSpinning && lastWin && lastWin.isConsolation ? 
                               (lastWin.lineType === 'horizontal' && lastWin.matchedRows?.includes(symbolIndex)) ||
