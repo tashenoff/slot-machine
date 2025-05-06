@@ -14,12 +14,12 @@
       "steps": [50000, 100000, 150000, 200000]
     }
   },
-  "reels": 3,
+  "reels": 4,
   "symbols": [
     {
       "id": "seven",
       "symbol": "7️⃣",
-      "value": 7
+      "value": 100
     },
     {
       "id": "cherry",
@@ -29,17 +29,17 @@
     {
       "id": "lemon",
       "symbol": "🍋",
-      "value": 3
+      "value": 30
     },
     {
       "id": "orange",
       "symbol": "🍊",
-      "value": 4
+      "value": 20
     },
     {
       "id": "grape",
       "symbol": "🍇",
-      "value": 6
+      "value": 50
     },
     {
       "id": "freespin",
@@ -56,30 +56,25 @@
   },
   "paylines": [
     {
-      "combination": ["seven", "seven", "seven"],
-      "type": "jackpot",
-      "name": "Джекпот - Тройка Семерок",
+      "name": "Джекпот - Четыре семерки!",
+      "combination": ["seven", "seven", "seven", "seven"],
+      "multiplier": 100,
       "isJackpot": true
     },
     {
-      "combination": ["cherry", "cherry", "cherry"],
-      "multiplier": 50,
-      "name": "Крупный выигрыш - Тройка Вишен"
+      "name": "Большой выигрыш - Четыре винограда!",
+      "combination": ["grape", "grape", "grape", "grape"],
+      "multiplier": 50
     },
     {
-      "combination": ["grape", "grape", "grape"],
-      "multiplier": 40,
-      "name": "Крупный выигрыш - Тройка Винограда"
+      "name": "Средний выигрыш - Четыре лимона!",
+      "combination": ["lemon", "lemon", "lemon", "lemon"],
+      "multiplier": 30
     },
     {
-      "combination": ["orange", "orange", "orange"],
-      "multiplier": 35,
-      "name": "Средний выигрыш - Тройка Апельсинов"
-    },
-    {
-      "combination": ["lemon", "lemon", "lemon"],
-      "multiplier": 30,
-      "name": "Средний выигрыш - Тройка Лимонов"
+      "name": "Малый выигрыш - Четыре апельсина!",
+      "combination": ["orange", "orange", "orange", "orange"],
+      "multiplier": 20
     }
   ]
 } 

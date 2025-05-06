@@ -17,6 +17,7 @@ interface GameState {
   setFreeSpins: (count: number) => void;
   decrementFreeSpins: () => void;
   setMultiplier: (value: number) => void;
+  activateFreeSpins: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -72,5 +73,12 @@ export const useGameStore = create<GameState>((set, get) => ({
   setMultiplier: (value: number) =>
     set(() => ({
       multiplier: value
+    })),
+
+  activateFreeSpins: () =>
+    set(() => ({
+      freeSpinsCount: slotConfig.gameSettings.freeSpins.count,
+      isFreeSpin: true,
+      multiplier: slotConfig.gameSettings.freeSpins.multiplier
     })),
 })); 
