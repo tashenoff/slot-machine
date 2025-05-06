@@ -1,0 +1,49 @@
+{
+  "reels": 3,
+  "symbols": [
+    {
+      "id": "seven",
+      "symbol": "7️⃣",
+      "value": 7
+    },
+    {
+      "id": "cherry",
+      "symbol": "🍒",
+      "value": 5
+    },
+    {
+      "id": "lemon",
+      "symbol": "🍋",
+      "value": 3
+    },
+    {
+      "id": "orange",
+      "symbol": "🍊",
+      "value": 4
+    },
+    {
+      "id": "grape",
+      "symbol": "🍇",
+      "value": 6
+    }
+  ],
+  "animation": {
+    "duration": 2000,
+    "spins": 1,
+    "delayBetweenReels": 200
+  },
+  "paylines": [
+    {
+      "combination": ["seven", "seven", "seven"],
+      "multiplier": 100
+    },
+    {
+      "combination": ["cherry", "cherry", "cherry"],
+      "multiplier": 50
+    },
+    {
+      "combination": ["grape", "grape", "grape"],
+      "multiplier": 40
+    }
+  ]
+} 
