@@ -1,4 +1,15 @@
 {
+  "gameSettings": {
+    "initialBalance": 1000000,
+    "initialJackpot": 1000000,
+    "jackpotContribution": 0.1,
+    "consolationPrize": 0.2,
+    "bets": {
+      "min": 50000,
+      "max": 200000,
+      "steps": [50000, 100000, 150000, 200000]
+    }
+  },
   "reels": 3,
   "symbols": [
     {
@@ -30,20 +41,35 @@
   "animation": {
     "duration": 2000,
     "spins": 1,
-    "delayBetweenReels": 200
+    "delayBetweenReels": 200,
+    "symbolHeight": 96
   },
   "paylines": [
     {
       "combination": ["seven", "seven", "seven"],
-      "multiplier": 100
+      "type": "jackpot",
+      "name": "Джекпот - Тройка Семерок",
+      "isJackpot": true
     },
     {
       "combination": ["cherry", "cherry", "cherry"],
-      "multiplier": 50
+      "multiplier": 50,
+      "name": "Крупный выигрыш - Тройка Вишен"
     },
     {
       "combination": ["grape", "grape", "grape"],
-      "multiplier": 40
+      "multiplier": 40,
+      "name": "Крупный выигрыш - Тройка Винограда"
+    },
+    {
+      "combination": ["orange", "orange", "orange"],
+      "multiplier": 35,
+      "name": "Средний выигрыш - Тройка Апельсинов"
+    },
+    {
+      "combination": ["lemon", "lemon", "lemon"],
+      "multiplier": 30,
+      "name": "Средний выигрыш - Тройка Лимонов"
     }
   ]
 } 
