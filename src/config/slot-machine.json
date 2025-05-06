@@ -14,7 +14,7 @@
       "steps": [50000, 100000, 150000, 200000]
     }
   },
-  "reels": 4,
+  "reels": 5,
   "symbols": [
     {
       "id": "seven",
@@ -56,24 +56,24 @@
   },
   "paylines": [
     {
-      "name": "Джекпот - Четыре семерки!",
-      "combination": ["seven", "seven", "seven", "seven"],
+      "name": "Джекпот - Пять семерок!",
+      "combination": ["seven", "seven", "seven", "seven", "seven"],
       "multiplier": 100,
       "isJackpot": true
     },
     {
-      "name": "Большой выигрыш - Четыре винограда!",
-      "combination": ["grape", "grape", "grape", "grape"],
+      "name": "Большой выигрыш - Пять винограда!",
+      "combination": ["grape", "grape", "grape", "grape", "grape"],
       "multiplier": 50
     },
     {
-      "name": "Средний выигрыш - Четыре лимона!",
-      "combination": ["lemon", "lemon", "lemon", "lemon"],
+      "name": "Средний выигрыш - Пять лимонов!",
+      "combination": ["lemon", "lemon", "lemon", "lemon", "lemon"],
       "multiplier": 30
     },
     {
-      "name": "Малый выигрыш - Четыре апельсина!",
-      "combination": ["orange", "orange", "orange", "orange"],
+      "name": "Малый выигрыш - Пять апельсинов!",
+      "combination": ["orange", "orange", "orange", "orange", "orange"],
       "multiplier": 20
     }
   ]
