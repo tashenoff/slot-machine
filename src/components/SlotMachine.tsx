@@ -569,98 +569,98 @@ export default function SlotMachine() {
             </div>
           </div>
         )}
-        <div className="w-full max-w-4xl mx-auto grid grid-cols-3 gap-4 mb-8">
-          <Balance />
-          <Jackpot />
-          <Bet />
-        </div>
 
-        {(freeSpinsCount > 0 || isFreeSpin) && (
-          <div className="w-full max-w-4xl mx-auto mb-8">
-            <FreeSpins />
-          </div>
-        )}
-
-        <div className="bg-yellow-900 p-8 rounded-xl shadow-2xl relative">
-          <div className="flex gap-4 mb-8 p-4 bg-yellow-800 rounded-lg justify-center">
-            {reels.map((reel, reelIndex) => (
-              <div 
-                key={reelIndex} 
-                className={`reel ${hasThreeMatch && (
-                  (matchPosition === 'left' && reelIndex < 3) || 
-                  (matchPosition === 'right' && reelIndex > 0)
-                ) ? 'matched-three' : ''}`}
-              >
-                <div 
-                  className={`symbols-container ${
-                    isSpinning && (!hasThreeMatch || (
-                      (matchPosition === 'left' && reelIndex === 3) ||
-                      (matchPosition === 'right' && reelIndex === 0)
-                    )) ? 'spinning' : ''
-                  }`} 
-                  style={{
-                    animationDelay: `${reelIndex * slotConfig.animation.delayBetweenReels}ms`
-                  }}
-                >
-                  {reel.map((symbol, symbolIndex) => (
-                    <div
-                      key={`${reelIndex}-${symbolIndex}`}
-                      className={`w-20 h-24 flex items-center justify-center text-5xl shrink-0 
-                        ${!isSpinning && lastWin && !lastWin.isConsolation && symbolIndex === 0 ? 'win-animation' : ''}
-                        ${hasThreeMatch && matchedRows.includes(symbolIndex) ? 'matched-row' : ''}
-                        ${!isSpinning && lastWin && lastWin.isConsolation ? 
-                          (lastWin.lineType === 'horizontal' && lastWin.matchedRows?.includes(symbolIndex)) ||
-                          (lastWin.lineType === 'diagonal-lr' && ((reelIndex === 0 && symbolIndex === 0) || 
-                                                                 (reelIndex === 1 && symbolIndex === 1) || 
-                                                                 (reelIndex === 2 && symbolIndex === 2) ||
-                                                                 (reelIndex === 3 && symbolIndex === 2))) ||
-                          (lastWin.lineType === 'diagonal-rl' && ((reelIndex === 0 && symbolIndex === 2) || 
-                                                                 (reelIndex === 1 && symbolIndex === 1) || 
-                                                                 (reelIndex === 2 && symbolIndex === 0) ||
-                                                                 (reelIndex === 3 && symbolIndex === 0)))
-                          ? 'consolation win-animation' : '' : ''}`}
+        <div className="w-full max-w-4xl mx-auto flex gap-4 mb-8">
+          <div className="flex-grow">
+            <div className="bg-yellow-900 p-8 rounded-xl shadow-2xl relative">
+              <div className="flex gap-4 mb-8 p-4 bg-yellow-800 rounded-lg justify-center">
+                {reels.map((reel, reelIndex) => (
+                  <div 
+                    key={reelIndex} 
+                    className={`reel ${hasThreeMatch && (
+                      (matchPosition === 'left' && reelIndex < 3) || 
+                      (matchPosition === 'right' && reelIndex > 0)
+                    ) ? 'matched-three' : ''}`}
+                  >
+                    <div 
+                      className={`symbols-container ${
+                        isSpinning && (!hasThreeMatch || (
+                          (matchPosition === 'left' && reelIndex === 3) ||
+                          (matchPosition === 'right' && reelIndex === 0)
+                        )) ? 'spinning' : ''
+                      }`} 
+                      style={{
+                        animationDelay: `${reelIndex * slotConfig.animation.delayBetweenReels}ms`
+                      }}
                     >
-                      {symbol.symbol}
+                      {reel.map((symbol, symbolIndex) => (
+                        <div
+                          key={`${reelIndex}-${symbolIndex}`}
+                          className={`w-20 h-24 flex items-center justify-center text-5xl shrink-0 
+                            ${!isSpinning && lastWin && !lastWin.isConsolation && symbolIndex === 0 ? 'win-animation' : ''}
+                            ${hasThreeMatch && matchedRows.includes(symbolIndex) ? 'matched-row' : ''}
+                            ${!isSpinning && lastWin && lastWin.isConsolation ? 
+                              (lastWin.lineType === 'horizontal' && lastWin.matchedRows?.includes(symbolIndex)) ||
+                              (lastWin.lineType === 'diagonal-lr' && ((reelIndex === 0 && symbolIndex === 0) || 
+                                                                     (reelIndex === 1 && symbolIndex === 1) || 
+                                                                     (reelIndex === 2 && symbolIndex === 2) ||
+                                                                     (reelIndex === 3 && symbolIndex === 2))) ||
+                              (lastWin.lineType === 'diagonal-rl' && ((reelIndex === 0 && symbolIndex === 2) || 
+                                                                     (reelIndex === 1 && symbolIndex === 1) || 
+                                                                     (reelIndex === 2 && symbolIndex === 0) ||
+                                                                     (reelIndex === 3 && symbolIndex === 0)))
+                              ? 'consolation win-animation' : '' : ''}`}
+                        >
+                          {symbol.symbol}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          
-          <button
-            onClick={hasThreeMatch ? spinLastReel : spin}
-            disabled={isSpinning || (!hasThreeMatch && balance < bet)}
-            className={`w-full py-4 px-8 text-xl font-bold rounded-lg transition-all ${
-              isSpinning || (!hasThreeMatch && balance < bet)
-                ? 'bg-gray-500 cursor-not-allowed'
-                : hasThreeMatch
-                ? 'bg-yellow-400 hover:bg-yellow-500 active:transform active:scale-95'
-                : 'bg-yellow-500 hover:bg-yellow-600 active:transform active:scale-95'
-            }`}
-          >
-            {isSpinning 
-              ? 'Вращается...' 
-              : hasThreeMatch 
-              ? 'Крутить последний барабан!' 
-              : balance < bet 
-              ? 'Недостаточно средств' 
-              : 'Крутить!'}
-          </button>
+              
+              <button
+                onClick={hasThreeMatch ? spinLastReel : spin}
+                disabled={isSpinning || (!hasThreeMatch && balance < bet)}
+                className={`w-full py-4 px-8 text-xl font-bold rounded-lg transition-all ${
+                  isSpinning || (!hasThreeMatch && balance < bet)
+                    ? 'bg-gray-500 cursor-not-allowed'
+                    : hasThreeMatch
+                    ? 'bg-yellow-400 hover:bg-yellow-500 active:transform active:scale-95'
+                    : 'bg-yellow-500 hover:bg-yellow-600 active:transform active:scale-95'
+                }`}
+              >
+                {isSpinning 
+                  ? 'Вращается...' 
+                  : hasThreeMatch 
+                  ? 'Крутить последний барабан!' 
+                  : balance < bet 
+                  ? 'Недостаточно средств' 
+                  : 'Крутить!'}
+              </button>
 
-          <button
-            onClick={activateFreeSpins}
-            disabled={isSpinning || freeSpinsCount > 0}
-            className={`w-full mt-4 py-3 px-6 text-lg font-bold rounded-lg transition-all ${
-              isSpinning || freeSpinsCount > 0
-                ? 'bg-gray-500 cursor-not-allowed'
-                : 'bg-purple-500 hover:bg-purple-600 active:transform active:scale-95'
-            }`}
-          >
-            {freeSpinsCount > 0 
-              ? `Активны фри спины (${freeSpinsCount})` 
-              : 'Активировать фри спины'}
-          </button>
+              <button
+                onClick={activateFreeSpins}
+                disabled={isSpinning || freeSpinsCount > 0}
+                className={`w-full mt-4 py-3 px-6 text-lg font-bold rounded-lg transition-all ${
+                  isSpinning || freeSpinsCount > 0
+                    ? 'bg-gray-500 cursor-not-allowed'
+                    : 'bg-purple-500 hover:bg-purple-600 active:transform active:scale-95'
+                }`}
+              >
+                {freeSpinsCount > 0 
+                  ? `Активны фри спины (${freeSpinsCount})` 
+                  : 'Активировать фри спины'}
+              </button>
+            </div>
+          </div>
+
+          <div className="w-80 flex flex-col gap-4">
+            <Bet />
+            <Balance />
+            <Jackpot />
+            {(freeSpinsCount > 0 || isFreeSpin) && <FreeSpins />}
+          </div>
         </div>
       </div>
     </>
