@@ -46,6 +46,7 @@ export default function SlotMachine() {
     decrementFreeSpins,
     activateFreeSpins
   } = useGameStore();
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     // Генерируем начальные символы при загрузке
@@ -485,6 +486,28 @@ export default function SlotMachine() {
           border-radius: 0.5rem;
           overflow: hidden;
         }
+        .reel::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 28px;
+          background: linear-gradient(to bottom, rgba(0,0,0,0.32), rgba(0,0,0,0));
+          z-index: 2;
+          pointer-events: none;
+        }
+        .reel::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 28px;
+          background: linear-gradient(to top, rgba(0,0,0,0.32), rgba(0,0,0,0));
+          z-index: 2;
+          pointer-events: none;
+        }
         
         .symbols-container {
           position: absolute;
@@ -512,6 +535,44 @@ export default function SlotMachine() {
           background: rgba(255, 215, 0, 0.3);
           border: 2px solid gold;
         }
+
+        .modal-bg {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.5);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .modal-content {
+          background: #fff;
+          border-radius: 1rem;
+          max-width: 420px;
+          width: 100%;
+          padding: 2rem 1.5rem 1.5rem 1.5rem;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+          position: relative;
+        }
+        .modal-content h2 {
+          font-size: 1.5rem;
+          font-weight: bold;
+          margin-bottom: 1rem;
+        }
+        .modal-content ul {
+          margin-left: 1.2em;
+          margin-bottom: 1em;
+        }
+        .modal-close {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          background: none;
+          border: none;
+          font-size: 1.5rem;
+          color: #333;
+          cursor: pointer;
+        }
       `}</style>
 
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-purple-900 to-purple-600 p-8">
@@ -531,6 +592,9 @@ export default function SlotMachine() {
         <div className="w-full max-w-4xl mx-auto flex gap-4 mb-8">
           <div className="flex-grow">
             <div className="bg-yellow-900 p-8 rounded-xl shadow-2xl relative">
+              <div className="flex justify-center mb-4">
+                <Jackpot />
+              </div>
               <div className="flex gap-4 mb-8 p-4 bg-yellow-800 rounded-lg justify-center">
                 {reels.map((reel, reelIndex) => (
                   <div 
@@ -610,17 +674,41 @@ export default function SlotMachine() {
                   ? `Активны фри спины (${freeSpinsCount})` 
                   : 'Активировать фри спины'}
               </button>
-            </div>
-          </div>
 
-          <div className="w-80 flex flex-col gap-4">
-            <Bet />
-            <Balance />
-            <Jackpot />
-            {(freeSpinsCount > 0 || isFreeSpin) && <FreeSpins />}
+              <div className="flex gap-6 justify-center mt-8">
+                <Bet />
+                <Balance />
+                <button
+                  className="py-3 px-6 text-lg font-bold rounded-lg bg-purple-700 hover:bg-purple-800 text-white transition-all"
+                  onClick={() => setShowRules(true)}
+                >
+                  Правила
+                </button>
+                {(freeSpinsCount > 0 || isFreeSpin) && <FreeSpins />}
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Модальное окно с правилами */}
+      {showRules && (
+        <div className="modal-bg" onClick={() => setShowRules(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowRules(false)}>&times;</button>
+            <h2>Правила игры</h2>
+            <ul>
+              <li>Выберите ставку и нажмите "Крутить!".</li>
+              <li>Выпадение 5 одинаковых символов на линии — максимальный выигрыш.</li>
+              <li>4 одинаковых символа подряд — шанс докрутить 5-й барабан.</li>
+              <li>Выпадение 5 символов ⭐ на линии — бесплатные вращения.</li>
+              <li>Джекпот — 5 семёрок на линии.</li>
+              <li>Баланс не может уйти в минус.</li>
+            </ul>
+            <div className="text-sm text-gray-500">Удачи!</div>
+          </div>
+        </div>
+      )}
     </>
   );
 } 
