@@ -21,7 +21,7 @@ interface WinResult {
   lineType?: 'horizontal' | 'diagonal-lr' | 'diagonal-rl' | 'vertical';
   position?: number;
   isFreeSpins?: boolean;
-  hasThreeMatch?: boolean;
+  hasFourMatch?: boolean;
   matchedRows?: number[];
   isFreeSpin: boolean;
 }
@@ -30,7 +30,7 @@ export default function SlotMachine() {
   const [reels, setReels] = useState<Symbol[][]>([]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [lastWin, setLastWin] = useState<WinResult | null>(null);
-  const [hasThreeMatch, setHasThreeMatch] = useState(false);
+  const [hasFourMatch, setHasFourMatch] = useState(false);
   const [matchedRows, setMatchedRows] = useState<number[]>([]);
   const [matchPosition, setMatchPosition] = useState<'left' | 'right'>('left');
   const nextSymbolsRef = useRef<Symbol[][]>([]);
@@ -46,6 +46,7 @@ export default function SlotMachine() {
     decrementFreeSpins,
     activateFreeSpins
   } = useGameStore();
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     // Генерируем начальные символы при загрузке
@@ -72,12 +73,13 @@ export default function SlotMachine() {
       
       if (lineSymbols[0].id === lineSymbols[1].id && 
           lineSymbols[1].id === lineSymbols[2].id && 
-          lineSymbols[2].id === lineSymbols[3].id) {
+          lineSymbols[2].id === lineSymbols[3].id &&
+          lineSymbols[3].id === lineSymbols[4].id) {
         const consolationAmount = Math.floor(bet * slotConfig.gameSettings.consolationPrize);
         const position = row === 0 ? "верхней" : row === 1 ? "центральной" : "нижней";
         return {
           amount: consolationAmount,
-          name: `Утешительный приз - Четыре ${lineSymbols[0].symbol} на ${position} линии`,
+          name: `Утешительный приз - Пять ${lineSymbols[0].symbol} на ${position} линии`,
           isConsolation: true,
           lineType: 'horizontal',
           position: row,
@@ -87,14 +89,15 @@ export default function SlotMachine() {
     }
 
     // Проверяем диагональ слева направо (↘)
-    const diagonalLR = [symbols[0][0], symbols[1][1], symbols[2][2], symbols[3][2]];
+    const diagonalLR = [symbols[0][0], symbols[1][1], symbols[2][2], symbols[3][2], symbols[4][2]];
     if (diagonalLR[0].id === diagonalLR[1].id && 
         diagonalLR[1].id === diagonalLR[2].id && 
-        diagonalLR[2].id === diagonalLR[3].id) {
+        diagonalLR[2].id === diagonalLR[3].id &&
+        diagonalLR[3].id === diagonalLR[4].id) {
       const consolationAmount = Math.floor(bet * slotConfig.gameSettings.consolationPrize);
       return {
         amount: consolationAmount,
-        name: `Утешительный приз - Четыре ${diagonalLR[0].symbol} по диагонали ↘`,
+        name: `Утешительный приз - Пять ${diagonalLR[0].symbol} по диагонали ↘`,
         isConsolation: true,
         lineType: 'diagonal-lr',
         isFreeSpin: false
@@ -102,41 +105,17 @@ export default function SlotMachine() {
     }
 
     // Проверяем диагональ справа налево (↙)
-    const diagonalRL = [symbols[0][2], symbols[1][1], symbols[2][0], symbols[3][0]];
+    const diagonalRL = [symbols[0][2], symbols[1][1], symbols[2][0], symbols[3][0], symbols[4][0]];
     if (diagonalRL[0].id === diagonalRL[1].id && 
         diagonalRL[1].id === diagonalRL[2].id && 
-        diagonalRL[2].id === diagonalRL[3].id) {
+        diagonalRL[2].id === diagonalRL[3].id &&
+        diagonalRL[3].id === diagonalRL[4].id) {
       const consolationAmount = Math.floor(bet * slotConfig.gameSettings.consolationPrize);
       return {
         amount: consolationAmount,
-        name: `Утешительный приз - Четыре ${diagonalRL[0].symbol} по диагонали ↙`,
+        name: `Утешительный приз - Пять ${diagonalRL[0].symbol} по диагонали ↙`,
         isConsolation: true,
         lineType: 'diagonal-rl',
-        isFreeSpin: false
-      };
-    }
-    
-    return null;
-  };
-
-  const checkWin = (symbols: Symbol[]): WinResult | null => {
-    const payline = slotConfig.paylines.find(payline => 
-      payline.combination.every((symbolId, index) => 
-        symbols[index].id === symbolId
-      )
-    );
-    
-    if (payline) {
-      if (payline.isJackpot) {
-        return {
-          amount: useGameStore.getState().jackpot,
-          name: payline.name,
-          isFreeSpin: false
-        };
-      }
-      return {
-        amount: bet * (payline.multiplier || 0),
-        name: payline.name,
         isFreeSpin: false
       };
     }
@@ -153,11 +132,11 @@ export default function SlotMachine() {
   };
 
   const checkFreeSpins = (symbols: Symbol[][]): WinResult | null => {
-    // Проверяем горизонтальные линии на 4 совпадения
+    // Проверяем горизонтальные линии на 5 совпадений
     for (let row = 0; row < 3; row++) {
       const lineSymbols = symbols.map(reel => reel[row]);
-      // Проверяем, что все 4 символа - это freespin
-      if (lineSymbols.length === 4 && lineSymbols.every(symbol => symbol.id === 'freespin')) {
+      // Проверяем, что все 5 символов - это freespin
+      if (lineSymbols.length === 5 && lineSymbols.every(symbol => symbol.id === 'freespin')) {
         return {
           amount: 0,
           name: 'Бесплатные вращения!',
@@ -169,8 +148,8 @@ export default function SlotMachine() {
       }
     }
 
-    // Проверяем вертикальные линии на 4 совпадения
-    for (let col = 0; col < 4; col++) {
+    // Проверяем вертикальные линии на 3 совпадения
+    for (let col = 0; col < 5; col++) {
       const lineSymbols = symbols[col];
       if (lineSymbols.length === 3 && lineSymbols.every(symbol => symbol.id === 'freespin')) {
         return {
@@ -184,9 +163,9 @@ export default function SlotMachine() {
       }
     }
 
-    // Проверяем диагональ слева направо на 4 совпадения
-    const diagonalLR = [symbols[0][0], symbols[1][1], symbols[2][2], symbols[3][2]];
-    if (diagonalLR.length === 4 && diagonalLR.every(symbol => symbol.id === 'freespin')) {
+    // Проверяем диагональ слева направо на 5 совпадений
+    const diagonalLR = [symbols[0][0], symbols[1][1], symbols[2][2], symbols[3][2], symbols[4][2]];
+    if (diagonalLR.length === 5 && diagonalLR.every(symbol => symbol.id === 'freespin')) {
       return {
         amount: 0,
         name: 'Бесплатные вращения!',
@@ -196,9 +175,9 @@ export default function SlotMachine() {
       };
     }
 
-    // Проверяем диагональ справа налево на 4 совпадения
-    const diagonalRL = [symbols[0][2], symbols[1][1], symbols[2][0], symbols[3][0]];
-    if (diagonalRL.length === 4 && diagonalRL.every(symbol => symbol.id === 'freespin')) {
+    // Проверяем диагональ справа налево на 5 совпадений
+    const diagonalRL = [symbols[0][2], symbols[1][1], symbols[2][0], symbols[3][0], symbols[4][0]];
+    if (diagonalRL.length === 5 && diagonalRL.every(symbol => symbol.id === 'freespin')) {
       return {
         amount: 0,
         name: 'Бесплатные вращения!',
@@ -211,23 +190,27 @@ export default function SlotMachine() {
     return null;
   };
 
-  const checkThreeMatch = (symbols: Symbol[][]): { hasMatch: boolean; rows: number[]; matchPosition: 'left' | 'right' } => {
+  const checkFourMatch = (symbols: Symbol[][]): { hasMatch: boolean; rows: number[]; matchPosition: 'left' | 'right' } => {
     const matchedRows: number[] = [];
     let matchPosition: 'left' | 'right' = 'left';
     
     // Проверяем все три горизонтальные линии
     for (let row = 0; row < 3; row++) {
-      // Проверяем первые три барабана
-      const firstThree = symbols.slice(0, 3).map(reel => reel[row]);
-      if (firstThree[0].id === firstThree[1].id && firstThree[1].id === firstThree[2].id) {
+      // Проверяем первые четыре барабана
+      const firstFour = symbols.slice(0, 4).map(reel => reel[row]);
+      if (firstFour[0].id === firstFour[1].id && 
+          firstFour[1].id === firstFour[2].id && 
+          firstFour[2].id === firstFour[3].id) {
         matchedRows.push(row);
         matchPosition = 'left';
         continue;
       }
       
-      // Проверяем последние три барабана
-      const lastThree = symbols.slice(1, 4).map(reel => reel[row]);
-      if (lastThree[0].id === lastThree[1].id && lastThree[1].id === lastThree[2].id) {
+      // Проверяем последние четыре барабана
+      const lastFour = symbols.slice(1, 5).map(reel => reel[row]);
+      if (lastFour[0].id === lastFour[1].id && 
+          lastFour[1].id === lastFour[2].id && 
+          lastFour[2].id === lastFour[3].id) {
         matchedRows.push(row);
         matchPosition = 'right';
       }
@@ -240,60 +223,6 @@ export default function SlotMachine() {
     };
   };
 
-  const checkFourMatch = (symbols: Symbol[][], specificRow?: number): { hasMatch: boolean; row: number; symbol: Symbol } | null => {
-    // Если указана конкретная строка, проверяем только её
-    if (specificRow !== undefined) {
-      const lineSymbols = symbols.map(reel => reel[specificRow]);
-      const firstSymbol = lineSymbols[0];
-      if (lineSymbols.every(symbol => symbol.id === firstSymbol.id)) {
-        return { 
-          hasMatch: true, 
-          row: specificRow, 
-          symbol: firstSymbol 
-        };
-      }
-      return null;
-    }
-
-    // Проверяем центральную линию первой
-    const centerRow = 1;
-    const centerLineSymbols = symbols.map(reel => reel[centerRow]);
-    const centerSymbol = centerLineSymbols[0];
-    if (centerLineSymbols.every(symbol => symbol.id === centerSymbol.id)) {
-      return { 
-        hasMatch: true, 
-        row: centerRow, 
-        symbol: centerSymbol 
-      };
-    }
-
-    // Затем проверяем верхнюю линию
-    const topRow = 0;
-    const topLineSymbols = symbols.map(reel => reel[topRow]);
-    const topSymbol = topLineSymbols[0];
-    if (topLineSymbols.every(symbol => symbol.id === topSymbol.id)) {
-      return { 
-        hasMatch: true, 
-        row: topRow, 
-        symbol: topSymbol 
-      };
-    }
-
-    // И наконец нижнюю линию
-    const bottomRow = 2;
-    const bottomLineSymbols = symbols.map(reel => reel[bottomRow]);
-    const bottomSymbol = bottomLineSymbols[0];
-    if (bottomLineSymbols.every(symbol => symbol.id === bottomSymbol.id)) {
-      return { 
-        hasMatch: true, 
-        row: bottomRow, 
-        symbol: bottomSymbol 
-      };
-    }
-
-    return null;
-  };
-
   const spinLastReel = async () => {
     if (isSpinning) return;
     
@@ -301,7 +230,7 @@ export default function SlotMachine() {
     setLastWin(null);
 
     // Определяем, какой барабан крутить в зависимости от позиции совпадения
-    const reelToSpin = matchPosition === 'left' ? 3 : 0;
+    const reelToSpin = matchPosition === 'left' ? 4 : 0;
     const newReelSymbols = getRandomSymbols(slotConfig.symbols.length);
     
     // Обновляем нужный барабан
@@ -327,7 +256,7 @@ export default function SlotMachine() {
     if (freeSpinsResult) {
       setLastWin(freeSpinsResult);
       setFreeSpins(slotConfig.gameSettings.freeSpins.count);
-      setHasThreeMatch(false);
+      setHasFourMatch(false);
       setMatchedRows([]);
       setIsSpinning(false);
       return;
@@ -343,7 +272,7 @@ export default function SlotMachine() {
     if (centerMatchResult) {
       updateBalance(centerMatchResult.amount);
       setLastWin(centerMatchResult);
-      setHasThreeMatch(false);
+      setHasFourMatch(false);
       setMatchedRows([]);
       setIsSpinning(false);
       return;
@@ -390,7 +319,7 @@ export default function SlotMachine() {
       decrementFreeSpins();
     }
 
-    setHasThreeMatch(false);
+    setHasFourMatch(false);
     setMatchedRows([]);
     setIsSpinning(false);
   };
@@ -399,8 +328,8 @@ export default function SlotMachine() {
     if (isSpinning) return;
     if (!isFreeSpin && balance < bet) return;
 
-    // Если есть три совпадения, крутим нужный барабан
-    if (hasThreeMatch) {
+    // Если есть четыре совпадения, крутим нужный барабан
+    if (hasFourMatch) {
       await spinLastReel();
       return;
     }
@@ -437,54 +366,26 @@ export default function SlotMachine() {
       return;
     }
 
-    // Сначала проверяем на 4 совпадения
+    // Если нет 5 совпадений, проверяем на 4 совпадения
     const fourMatchResult = checkFourMatch(finalSymbols);
-    if (fourMatchResult) {
-      const payline = slotConfig.paylines.find(p => 
-        p.combination.every(id => id === fourMatchResult.symbol.id)
-      );
+    if (fourMatchResult.hasMatch) {
+      setHasFourMatch(true);
+      setMatchedRows(fourMatchResult.rows);
+      setMatchPosition(fourMatchResult.matchPosition);
       
-      if (payline) {
-        const baseWinAmount = bet * payline.multiplier;
-        const winAmount = isFreeSpin ? baseWinAmount * multiplier : baseWinAmount;
-        
-        updateBalance(winAmount);
-        setLastWin({
-          amount: winAmount,
-          name: `${payline.name}${isFreeSpin ? ` (x${multiplier})` : ''}`,
-          lineType: 'horizontal',
-          position: fourMatchResult.row,
-          isFreeSpin
-        });
-        
-        if (payline.isJackpot) {
-          useGameStore.getState().resetJackpot();
-        }
-      }
-      setIsSpinning(false);
-      return;
-    }
-
-    // Если нет 4 совпадений, проверяем на 3 совпадения
-    const threeMatchResult = checkThreeMatch(finalSymbols);
-    if (threeMatchResult.hasMatch) {
-      setHasThreeMatch(true);
-      setMatchedRows(threeMatchResult.rows);
-      setMatchPosition(threeMatchResult.matchPosition);
-      
-      const rowDescriptions = threeMatchResult.rows.map(row => {
+      const rowDescriptions = fourMatchResult.rows.map(row => {
         const position = row === 0 ? "верхней" : row === 1 ? "центральной" : "нижней";
-        const symbol = finalSymbols[threeMatchResult.matchPosition === 'left' ? 0 : 1][row].symbol;
+        const symbol = finalSymbols[fourMatchResult.matchPosition === 'left' ? 0 : 1][row].symbol;
         return `${symbol} на ${position} линии`;
       });
 
       setLastWin({
         amount: 0,
-        name: `Найдены совпадения!\n${rowDescriptions.join('\n')}\nКрутите ${threeMatchResult.matchPosition === 'left' ? 'последний' : 'первый'} барабан для улучшения выигрыша!`,
+        name: `Найдены 4 совпадения!\n${rowDescriptions.join('\n')}\nКрутите ${fourMatchResult.matchPosition === 'left' ? 'пятый' : 'первый'} барабан для улучшения выигрыша!`,
         isConsolation: true,
         lineType: 'horizontal',
-        hasThreeMatch: true,
-        matchedRows: threeMatchResult.rows,
+        hasFourMatch: true,
+        matchedRows: fourMatchResult.rows,
         isFreeSpin: false
       });
       setIsSpinning(false);
@@ -560,6 +461,28 @@ export default function SlotMachine() {
           border-radius: 0.5rem;
           overflow: hidden;
         }
+        .reel::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 28px;
+          background: linear-gradient(to bottom, rgba(0,0,0,0.32), rgba(0,0,0,0));
+          z-index: 2;
+          pointer-events: none;
+        }
+        .reel::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 28px;
+          background: linear-gradient(to top, rgba(0,0,0,0.32), rgba(0,0,0,0));
+          z-index: 2;
+          pointer-events: none;
+        }
         
         .symbols-container {
           position: absolute;
@@ -583,12 +506,47 @@ export default function SlotMachine() {
           background: rgba(255, 215, 0, 0.2);
         }
 
-        .matched-three {
+        .matched-four {
           background: rgba(255, 215, 0, 0.3);
           border: 2px solid gold;
         }
-        .matched-row {
-          background: rgba(255, 215, 0, 0.2);
+
+        .modal-bg {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.5);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .modal-content {
+          background: #fff;
+          border-radius: 1rem;
+          max-width: 420px;
+          width: 100%;
+          padding: 2rem 1.5rem 1.5rem 1.5rem;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+          position: relative;
+        }
+        .modal-content h2 {
+          font-size: 1.5rem;
+          font-weight: bold;
+          margin-bottom: 1rem;
+        }
+        .modal-content ul {
+          margin-left: 1.2em;
+          margin-bottom: 1em;
+        }
+        .modal-close {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          background: none;
+          border: none;
+          font-size: 1.5rem;
+          color: #333;
+          cursor: pointer;
         }
       `}</style>
 
@@ -609,19 +567,22 @@ export default function SlotMachine() {
         <div className="w-full max-w-4xl mx-auto flex gap-4 mb-8">
           <div className="flex-grow">
             <div className="bg-yellow-900 p-8 rounded-xl shadow-2xl relative">
+              <div className="flex justify-center mb-4">
+                <Jackpot />
+              </div>
               <div className="flex gap-4 mb-8 p-4 bg-yellow-800 rounded-lg justify-center">
                 {reels.map((reel, reelIndex) => (
                   <div 
                     key={reelIndex} 
-                    className={`reel ${hasThreeMatch && (
-                      (matchPosition === 'left' && reelIndex < 3) || 
+                    className={`reel ${hasFourMatch && (
+                      (matchPosition === 'left' && reelIndex < 4) || 
                       (matchPosition === 'right' && reelIndex > 0)
-                    ) ? 'matched-three' : ''}`}
+                    ) ? 'matched-four' : ''}`}
                   >
                     <div 
                       className={`symbols-container ${
-                        isSpinning && (!hasThreeMatch || (
-                          (matchPosition === 'left' && reelIndex === 3) ||
+                        isSpinning && (!hasFourMatch || (
+                          (matchPosition === 'left' && reelIndex === 4) ||
                           (matchPosition === 'right' && reelIndex === 0)
                         )) ? 'spinning' : ''
                       }`} 
@@ -634,7 +595,7 @@ export default function SlotMachine() {
                           key={`${reelIndex}-${symbolIndex}`}
                           className={`w-20 h-24 flex items-center justify-center text-5xl shrink-0 
                             ${!isSpinning && lastWin && !lastWin.isConsolation && symbolIndex === (lastWin.position ?? 1) ? 'win-animation' : ''}
-                            ${hasThreeMatch && matchedRows.includes(symbolIndex) ? 'matched-row' : ''}
+                            ${hasFourMatch && matchedRows.includes(symbolIndex) ? 'matched-row' : ''}
                             ${!isSpinning && lastWin && lastWin.isConsolation ? 
                               (lastWin.lineType === 'horizontal' && lastWin.matchedRows?.includes(symbolIndex)) ||
                               (lastWin.lineType === 'diagonal-lr' && ((reelIndex === 0 && symbolIndex === 0) || 
@@ -656,20 +617,20 @@ export default function SlotMachine() {
               </div>
               
               <button
-                onClick={hasThreeMatch ? spinLastReel : spin}
-                disabled={isSpinning || (!hasThreeMatch && balance < bet)}
+                onClick={hasFourMatch ? spinLastReel : spin}
+                disabled={isSpinning || (!hasFourMatch && balance < bet)}
                 className={`w-full py-4 px-8 text-xl font-bold rounded-lg transition-all ${
-                  isSpinning || (!hasThreeMatch && balance < bet)
+                  isSpinning || (!hasFourMatch && balance < bet)
                     ? 'bg-gray-500 cursor-not-allowed'
-                    : hasThreeMatch
+                    : hasFourMatch
                     ? 'bg-yellow-400 hover:bg-yellow-500 active:transform active:scale-95'
                     : 'bg-yellow-500 hover:bg-yellow-600 active:transform active:scale-95'
                 }`}
               >
                 {isSpinning 
                   ? 'Вращается...' 
-                  : hasThreeMatch 
-                  ? 'Крутить последний барабан!' 
+                  : hasFourMatch 
+                  ? 'Крутить пятый барабан!' 
                   : balance < bet 
                   ? 'Недостаточно средств' 
                   : 'Крутить!'}
@@ -688,17 +649,41 @@ export default function SlotMachine() {
                   ? `Активны фри спины (${freeSpinsCount})` 
                   : 'Активировать фри спины'}
               </button>
-            </div>
-          </div>
 
-          <div className="w-80 flex flex-col gap-4">
-            <Bet />
-            <Balance />
-            <Jackpot />
-            {(freeSpinsCount > 0 || isFreeSpin) && <FreeSpins />}
+              <div className="flex gap-6 justify-center mt-8">
+                <Bet />
+                <Balance />
+                <button
+                  className="py-3 px-6 text-lg font-bold rounded-lg bg-purple-700 hover:bg-purple-800 text-white transition-all"
+                  onClick={() => setShowRules(true)}
+                >
+                  Правила
+                </button>
+                {(freeSpinsCount > 0 || isFreeSpin) && <FreeSpins />}
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Модальное окно с правилами */}
+      {showRules && (
+        <div className="modal-bg" onClick={() => setShowRules(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowRules(false)}>&times;</button>
+            <h2>Правила игры</h2>
+            <ul>
+              <li>Выберите ставку и нажмите "Крутить!".</li>
+              <li>Выпадение 5 одинаковых символов на линии — максимальный выигрыш.</li>
+              <li>4 одинаковых символа подряд — шанс докрутить 5-й барабан.</li>
+              <li>Выпадение 5 символов ⭐ на линии — бесплатные вращения.</li>
+              <li>Джекпот — 5 семёрок на линии.</li>
+              <li>Баланс не может уйти в минус.</li>
+            </ul>
+            <div className="text-sm text-gray-500">Удачи!</div>
+          </div>
+        </div>
+      )}
     </>
   );
 } 
