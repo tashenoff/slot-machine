@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { StateCreator } from 'zustand';
 import slotConfig from '../config/slot-machine.json';
 
 interface GameState {

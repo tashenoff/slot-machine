@@ -123,31 +123,6 @@ export default function SlotMachine() {
     return null;
   };
 
-  const checkWin = (symbols: Symbol[]): WinResult | null => {
-    const payline = slotConfig.paylines.find(payline => 
-      payline.combination.every((symbolId, index) => 
-        symbols[index].id === symbolId
-      )
-    );
-    
-    if (payline) {
-      if (payline.isJackpot) {
-        return {
-          amount: useGameStore.getState().jackpot,
-          name: payline.name,
-          isFreeSpin: false
-        };
-      }
-      return {
-        amount: bet * (payline.multiplier || 0),
-        name: payline.name,
-        isFreeSpin: false
-      };
-    }
-    
-    return null;
-  };
-
   const prepareReelsForSpin = () => {
     const newSymbols = reels.map((currentReel) => {
       const newReel = getRandomSymbols(slotConfig.symbols.length);
